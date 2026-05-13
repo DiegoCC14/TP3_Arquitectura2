@@ -1,4 +1,4 @@
-//#include <mpi.h>
+#include <mpi.h>
 
 #include <iostream>
 #include <unistd.h>
@@ -44,7 +44,7 @@ int main(int argc, char **argv)
         << " IP= "
         << ip
         << endl;
-    
+
     if (MPI_Finalize() != MPI_SUCCESS)
     {
         cout << "Error finalizando MPI" << endl;
