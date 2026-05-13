@@ -15,13 +15,7 @@
 
 using namespace std;
 
-#include <iostream>
 #include <vector>
-#include <chrono>
-#include <thread>
-#include <mutex>
-
-#include "matrix_without_threads.cpp"
 
 
 vector<vector<float>> multiplicacion_matrices( vector<vector<float>> matrix1, vector<vector<float>> matrix2, int startRow , int endRow ) {
