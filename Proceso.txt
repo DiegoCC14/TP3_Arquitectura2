@@ -1,8 +1,21 @@
+## PRECAUCION ##
+==>> SUDO SU PARA MODIFICAR CARPETA DE ARCHIVOS, ROOT
+==>> SIN PRIVILEGIOS PARA EJECUTAR, LIMITACION DE MIP
+################
+
+Instalación Previa
+1 - Instalar git : sudo apt install git
+2 - Agregar repositorio : git remote add origin https://github.com/DiegoCC14/TP3_Arquitectura2
+
 - Ejecución Local con MCPI
 1 - Instalar MCPI
 2 - Instalar compilador g++
-3 - compilar con MPCI el .cpp
-4 - ejecutamos
+3 - compilar con MPCI el .cpp : mpic++ main.cpp -o programa
+4 - ejecutamos :
+	Ejercicio 0 -> mpirun -n 4 ./programa
+	Ejercicio 1 -> mpirun -n 6 ./programa 1500000
+	Ejercicio 3 ->  mpirun -n 6 ./programa 300
+	Ejercicio 4 ->  mpirun -n 6 ./programa 10000000
 
 - Ejecución Distribuida
 3.1 - crear usuario en los equipos, crear archivos necesarios
