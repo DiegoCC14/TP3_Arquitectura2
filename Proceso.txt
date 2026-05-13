@@ -1,0 +1,10 @@
+- Ejecución Local con MCPI
+1 - Instalar MCPI
+2 - Instalar compilador g++
+3 - compilar con MPCI el .cpp
+4 - ejecutamos
+
+- Ejecución Distribuida
+3.1 - crear usuario en los equipos, crear archivos necesarios
+3.2 - Archivo host
+3.3 - Ejecutamos agregando hosts.
