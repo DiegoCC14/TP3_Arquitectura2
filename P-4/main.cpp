@@ -112,15 +112,18 @@ int main(int argc, char **argv)
     // =======
     
     if (rank==0){ sort( vectorResultadoFinal.begin(), vectorResultadoFinal.end() ); }
-    
+
     auto end_time = chrono::high_resolution_clock::now();
     auto duration = chrono::duration_cast<chrono::milliseconds>(end_time - start_time);
 
     if ( rank == 0 ){ //Primeras Filas
 
         cout << "10 Ultimos Primos: " << std::endl;
+        int contador = 0;
         for (int x = vectorResultadoFinal.size()-1 ; x>=0 ; x-- ) {
-            cout << vectorResultadoFinal[x] << " ";
+            contador ++;
+            cout << vectorResultadoFinal[x] << " , ";
+            if (contador == 10) { break; }
         }
         cout << "\nCantidad de Primos: "<< vectorResultadoFinal.size() << std::endl;
         cout << "Tiempo de ejecución: " << duration.count() << " ms\n" << endl;
