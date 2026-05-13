@@ -1,80 +1,102 @@
-/*
-Escribir un programa que calcule el logaritmo natural de números mayores a
-1000000000 (1*109) en punto flotante de doble precisión largo (tipo long double en
-C++) mediante serie de Taylor, empleando ###100000000 (cien millones)### de términos
-de dicha serie. El resultado debe imprimirse con 15 dígitos (ver anexo). Resuelva el
-problema de dos formas:
-● Sin emplear multihilos.
-● Empleando múltiples hilos que trabajen concurrentemente, resolviendo cada
-hilo una parte de los ###100 millones### de términos de la serie de Taylor
-(sugerencia, utilizar como número de hilos divisores de 10000000).
-Tanto el operando del logaritmo natural como la cantidad de hilos a emplear deben
-ingresarse por teclado.
-a) Incluya código que permita obtener el tiempo de ejecución en cada programa, y
-calcule el speedup (ver Anexo 1.4).
-b) Observe el porcentaje de uso de cada núcleo en cada implementación (ver Anexo
-1.6). Obtenga el valor de IPC (instrucciones por ciclo) con el comando perf (ver
-Anexo 4).
-c) Observe la eficiencia en el uso de la memoria caché. Observe los fallos en la
-lectura de la caché de mayor nivel, usualmente L3 (parámetro conocido como Last
-level load misses o LLC-load-misses) y los fallos en la lectura de la caché L1 de
-datos (conocido como L1-dcache-load-misses) (ver Anexo 4).
-d) ¿Cómo clasificaría este problema, CPU-bound o memory-bound?
-Serie de Taylor del logaritmo natural:
-*/
+#include <mpi.h>
 
-#include <string>
 #include <iostream>
+#include <unistd.h>
+
+#include <cstring>
+#include <string>
+
 #include <chrono>
+
+#include <iomanip>
+#include <cmath>
+
+#include "getIP.cpp"
 #include "ln_sin_hilos.cpp"
 #include "ln_con_hilos.cpp"
 
 using namespace std;
 
-int main() {
+
+long double cal_series(long double x, int start, int end) {
+    long double _2n_mas_1;
+    long double result = 0.0;
+    long double term = ((x - 1) / (x + 1));
+
+    for (int i = start; i <= end; ++i) {
+        _2n_mas_1 = 2 * (long double) i + 1;
+        result += pow(term, _2n_mas_1) / _2n_mas_1;
+    }
+    return 2 * result;
+}
+
+int main(int argc, char **argv)
+{
 
     // ENTRADA DE DATOS ------------------------------------------------------------------------
-    string inputX;
-    cout << "Ingrese Valor de Logaritmo Natural a Calcular: ";
-    getline(cin, inputX);
-    long double x = stold(inputX);
-
-    string input_num_threads;
-    cout << "Ingrese Numero Hilos a Ejecutar: ";
-    getline(cin, input_num_threads);
-    int num_threads = stoi(input_num_threads);
+    long double x = stold(argv[1]); // toma valor de argumento ingresado por consola
     //------------------------------------------------------------------------------------------
-    cout << "\nEjecucion Sin Hilos...\n";
 
-    auto start_time1 = chrono::high_resolution_clock::now(); //empieza el clock
-    
-    long double result1 = cal_series(x);
+    if (MPI_Init(&argc, &argv) != MPI_SUCCESS)
+    {
+        cout << "Error iniciando MPI" << endl;
+        return 1;
+    }
 
-    auto end_time1 = chrono::high_resolution_clock::now();
-    auto duration1 = chrono::duration_cast<chrono::milliseconds>(end_time1 - start_time1);
+    int rank; //Numero Proceso Asignado
+    int size; //Numero Total de Procesos
 
-    cout << "Sin Hilos:";
-    cout << "\n - Resultado: " << setprecision(15) << result1;
-    cout << "\n - Tiempo de ejecucion: " << duration1.count() << " ms\n\n";
-    
+    MPI_Comm_rank(MPI_COMM_WORLD, &rank); //MPI Comunicacion, se asigna valor a rank
+
+    MPI_Comm_size(MPI_COMM_WORLD, &size); //MPI Comunicacion, se asigna valor a size
+
+    char hostname[256];
+
+    gethostname(hostname, sizeof(hostname)); //Nombre donde hosteamos el proceso
+
+    string ipLocal = obtenerIPLocal();
+
+    // ==========================================================================>>>>>>>>>>>>>>>>
+
+    int num_terms = 10000000;
+    int terms_per_process = num_terms / size; //Dividimos los terminos por el tamanio de procesos
+    int start_term = rank * terms_per_process; //
+    int end_term = (rank == size - 1) ? 9999999 : (rank + 1) * terms_per_process - 1;
+
+    long double result = 0.0;
+
     //------------------------------------------------------------------------------------------
-    cout << "Ejecucion Multiples Hilos:";
+    auto start_time = chrono::high_resolution_clock::now();  // empieza el clock
 
-    auto start_time2 = chrono::high_resolution_clock::now(); //empieza el clock
+    cout << "\nCalculando en proceso " << rank << " - IP= " << ipLocal << endl;
     
-    long double result2 = cal_series_threads(num_threads, x);
+    result = cal_series(x, start_term, end_term);
 
-    auto end_time2 = chrono::high_resolution_clock::now();
-    auto duration2 = chrono::duration_cast<chrono::milliseconds>(end_time2 - start_time2);
+    long double global_result = 0.0;
+    MPI_Reduce(&result, &global_result, 1, MPI_LONG_DOUBLE, MPI_SUM, 0, MPI_COMM_WORLD);
+    // MPI_Reduce(void* send_data, void* recv_data, int count, MPI_Datatype datatype, MPI_Op op, int root, MPI_Comm communicator)
+    // MPI_Reduce toma el valor de result de cada proceso y lo suma en global_result del proceso 0
+    
+    auto end_time = chrono::high_resolution_clock::now();
+    auto duration = chrono::duration_cast<chrono::milliseconds>(end_time - start_time);
 
-    cout << "\n - Resultado: " << setprecision(15) << result2;
-    cout << "\n - Tiempo de ejecucion: " << duration2.count() << " ms\n\n";
+    if (rank == 0) {
+        cout << "Resultado: " << setprecision(15) << global_result
+        << " -> Proceso " << rank << " de " << size
+        << " corriendo en la maquina " << hostname
+        << " IP= " << ipLocal << endl;
+
+        cout << "Tiempo de ejecución: " << duration.count() << " ms\n" << endl;
+        cout << "Cantidad de procesos: " << size << endl;
+    }
     
-    //------------------------------------------------------------------------------------------
+    // ==========================================================================>>>>>>>>>>>>>>>>
     
-    double speed_up = ((double) duration1.count())/duration2.count(); //solo en 1 porque automáticamente castea el de abajo
-    cout << "Speed up: " << speed_up << endl;
-    
+    if (MPI_Finalize() != MPI_SUCCESS)
+    {
+        cout << "Error finalizando MPI" << endl;
+        return 1;
+    }
+
     return 0;
-    
 }
