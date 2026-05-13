@@ -30,21 +30,15 @@ int main(int argc, char **argv)
 
     char hostname[256];
 
-    gethostname(hostname, sizeof(hostname));
+    gethostname(hostname, sizeof(hostname)); #Nombre donde hosteamos el proceso
 
     string ip = obtenerIPLocal();
 
     cout
-        << "Hola Mundo! soy el proceso "
-        << rank
-        << " de "
-        << size
-        << " corriendo en la maquina "
-        << hostname
-        << " IP= "
-        << ip
-        << endl;
-
+        << "Hola Mundo! soy el proceso " << rank << " de " << size
+        << " corriendo en la maquina " << hostname
+        << " IP= " << ip << endl;
+    
     if (MPI_Finalize() != MPI_SUCCESS)
     {
         cout << "Error finalizando MPI" << endl;
