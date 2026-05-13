@@ -15,11 +15,7 @@ using namespace std;
 int main(int argc, char **argv)
 {
 
-    string ipLocal = obtenerIPLocal();
-    
-    cout << "IP Local: " << ipLocal << endl;
-    
-    /*if (MPI_Init(&argc, &argv) != MPI_SUCCESS)
+    if (MPI_Init(&argc, &argv) != MPI_SUCCESS)
     {
         cout << "Error iniciando MPI" << endl;
         return 1;
@@ -36,7 +32,7 @@ int main(int argc, char **argv)
 
     gethostname(hostname, sizeof(hostname));
 
-    //string ip = obtenerIPLocal();
+    string ip = obtenerIPLocal();
 
     cout
         << "Hola Mundo! soy el proceso "
@@ -46,9 +42,9 @@ int main(int argc, char **argv)
         << " corriendo en la maquina "
         << hostname
         << " IP= "
-        //<< ip
-        //<< endl;
-
+        << ip
+        << endl;
+    
     if (MPI_Finalize() != MPI_SUCCESS)
     {
         cout << "Error finalizando MPI" << endl;
@@ -56,5 +52,4 @@ int main(int argc, char **argv)
     }
 
     return 0;
-    */
 }
