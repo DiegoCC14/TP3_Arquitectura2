@@ -30,7 +30,7 @@ int main(int argc, char **argv)
 
     char hostname[256];
 
-    gethostname(hostname, sizeof(hostname)); #Nombre donde hosteamos el proceso
+    gethostname(hostname, sizeof(hostname)); //Nombre donde hosteamos el proceso
 
     string ip = obtenerIPLocal();
 
